@@ -19,11 +19,11 @@
  */
 package org.apache.kerberos.kerb.codec.test;
 
-import org.apache.kerberos.kerb.spec.common.EncryptionType;
-import org.apache.kerberos.kerb.spec.common.HostAddrType;
-import org.apache.kerberos.kerb.spec.common.KrbMessageType;
-import org.apache.kerberos.kerb.spec.common.NameType;
+import org.apache.kerberos.kerb.codec.kerberos.KerberosToken;
+import org.apache.kerberos.kerb.spec.common.*;
 import org.apache.kerberos.kerb.spec.kdc.AsReq;
+import org.apache.kerberos.kerb.spec.pa.PaData;
+import org.apache.kerberos.kerb.spec.pa.PaDataEntry;
 import org.apache.kerberos.kerb.spec.pa.PaDataType;
 import org.junit.Assert;
 import org.junit.Test;
@@ -42,19 +42,27 @@ import java.util.SimpleTimeZone;
  * and compatibility issues particularly regarding Kerberos crypto.
  */
 public class TestAsReqCodec {
+    private static final String AS_REQ_DATA_PATH = "/asreq.token";
+    private static final String KEYTAB_DATA_PATH = "/codecTest.keytab";
 
     @Test
     public void test() throws IOException, ParseException {
-        byte[] bytes = CodecTestUtil.readBinaryFile("/asreq.token");
-        ByteBuffer asreqToken = ByteBuffer.wrap(bytes);
+        byte[] bytes = CodecTestUtil.readBinaryFile(AS_REQ_DATA_PATH);
+        ByteBuffer asReqToken = ByteBuffer.wrap(bytes);
 
         AsReq asReq = new AsReq();
-        asReq.decode(asreqToken);
+        asReq.decode(asReqToken);
 
         Assert.assertEquals(asReq.getPvno(), 5);
         Assert.assertEquals(asReq.getMsgType(), KrbMessageType.AS_REQ);
 
-        Assert.assertEquals(asReq.getPaData().findEntry(PaDataType.ENC_TIMESTAMP).getPaDataType(), PaDataType.ENC_TIMESTAMP);
+        PaData paData = asReq.getPaData();
+        PaDataEntry timeStampEntry = paData.findEntry(PaDataType.ENC_TIMESTAMP);
+        Assert.assertEquals(timeStampEntry.getPaDataType(), PaDataType.ENC_TIMESTAMP);
+        byte[] keyData = CodecTestUtil.readBinaryFile(KEYTAB_DATA_PATH);
+        EncryptionKey encryptionKey = new EncryptionKey(23, keyData);
+
+
         byte[] paDataEncTimestampValue = Arrays.copyOfRange(bytes, 33, 96);
         byte[] paDataEncTimestampRealValue = asReq.getPaData().findEntry(PaDataType.ENC_TIMESTAMP).getPaDataValue();
         Assert.assertTrue(Arrays.equals(paDataEncTimestampValue, paDataEncTimestampRealValue));
