@@ -77,6 +77,18 @@ public class KdcServer {
         started = true;
     }
 
+    //FIXME host and config should be loaded from configuration.
+    public static void main(String[] args) {
+        String serverHost = "localhost";
+        short serverPort = 8089;
+
+        KdcServer server = new SimpleKdcServer();
+        server.setKdcHost(serverHost);
+        server.setKdcTcpPort(serverPort);
+        server.init();
+        server.start();
+    }
+
     public String getKdcRealm() {
         if (kdcRealm != null) {
             return kdcRealm;
