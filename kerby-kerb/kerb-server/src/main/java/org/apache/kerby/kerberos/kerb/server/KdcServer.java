@@ -87,6 +87,7 @@ public class KdcServer {
         server.setKdcTcpPort(serverPort);
         server.init();
         server.start();
+        System.out.println("KDC Server started!!");
     }
 
     public String getKdcRealm() {
