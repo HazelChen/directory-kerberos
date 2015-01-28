@@ -92,7 +92,8 @@ public class KdcServer {
             server.start();
             System.out.println("KDC Server started.");
         } else if (args[0].equals("stop")){
-            server.stop();
+            System.out.println("server is null? " + (server == null));
+//            server.stop();
             System.out.println("KDC Server stoped.");
         }
     }
