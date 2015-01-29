@@ -183,6 +183,7 @@
               <phase>package</phase>
               <configuration>
                 <tasks>
+                  <!--copy libs about kerby-server to dist directory-->
                   <copy todir="${server.dist.directory}">
                     <fileset dir="kerby-kerb/kerb-server/${dependency.directory}">
                       <include name="*" />
