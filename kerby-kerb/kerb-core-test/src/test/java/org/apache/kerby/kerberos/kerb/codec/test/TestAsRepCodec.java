@@ -19,10 +19,10 @@
  */
 package org.apache.kerby.kerberos.kerb.codec.test;
 
-import org.apache.kerby.kerberos.kerb.spec.common.KrbMessageType;
-import org.apache.kerby.kerberos.kerb.spec.common.NameType;
-import org.apache.kerby.kerberos.kerb.spec.common.PrincipalName;
+import org.apache.kerby.kerberos.kerb.spec.common.*;
 import org.apache.kerby.kerberos.kerb.spec.kdc.AsRep;
+import org.apache.kerby.kerberos.kerb.spec.kdc.EncAsRepPart;
+import org.apache.kerby.kerberos.kerb.spec.kdc.EncKdcRepPart;
 import org.apache.kerby.kerberos.kerb.spec.ticket.Ticket;
 import org.junit.Assert;
 import org.junit.Test;
@@ -61,6 +61,11 @@ public class TestAsRepCodec {
         Assert.assertEquals(2, sName.getNameStrings().size());
         Assert.assertEquals("krbtgt", sName.getNameStrings().get(0));
         Assert.assertEquals("DENYDC.COM", sName.getNameStrings().get(1));
+
+        byte[] keyData = CodecTestUtil.readBinaryFile("server.keytab");
+        EncryptionKey rc4hmacKey = new EncryptionKey(23, keyData, 7);
+        EncKdcRepPart encKdcRepPart = new EncAsRepPart();
+
         //FIXME
         //EncTicketPart encTicketPart = ticket.getEncPart();
         //Assert.assertEquals(2, encTicketPart.getKey().getKvno());
