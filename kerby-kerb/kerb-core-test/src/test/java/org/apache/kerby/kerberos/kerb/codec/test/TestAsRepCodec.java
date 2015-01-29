@@ -19,6 +19,8 @@
  */
 package org.apache.kerby.kerberos.kerb.codec.test;
 
+import org.apache.kerby.kerberos.kerb.crypto.EncryptionHandler;
+import org.apache.kerby.kerberos.kerb.keytab.Keytab;
 import org.apache.kerby.kerberos.kerb.spec.common.*;
 import org.apache.kerby.kerberos.kerb.spec.kdc.AsRep;
 import org.apache.kerby.kerberos.kerb.spec.kdc.EncAsRepPart;
@@ -62,9 +64,22 @@ public class TestAsRepCodec {
         Assert.assertEquals("krbtgt", sName.getNameStrings().get(0));
         Assert.assertEquals("DENYDC.COM", sName.getNameStrings().get(1));
 
-        byte[] keyData = CodecTestUtil.readBinaryFile("server.keytab");
+        byte[] keyData = CodecTestUtil.readBinaryFile("/server.keytab");
         EncryptionKey rc4hmacKey = new EncryptionKey(23, keyData, 7);
+
+        Keytab keytab = new Keytab();
+        keytab.load(CodecTestUtil.class.getResourceAsStream("/server.keytab"));
+        EncryptionKey key = keytab.getKey(cName, EncryptionType.ARCFOUR_HMAC);
+
+        EncryptionHandler.decrypt(asRep.getEncryptedEncPart(), key, usage);
+
+
+
         EncKdcRepPart encKdcRepPart = new EncAsRepPart();
+        encKdcRepPart.setKey(rc4hmacKey);
+
+        EncryptedData encryptedData =
+
 
         //FIXME
         //EncTicketPart encTicketPart = ticket.getEncPart();
