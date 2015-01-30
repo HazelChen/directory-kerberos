@@ -30,4 +30,10 @@ public class CodecTestUtil {
         is.close();
         return bytes;
     }
+
+    /*package*/ static InputStream getInputStream(String path) throws IOException {
+        return CodecTestUtil.class.getResourceAsStream(path);
+    }
+
+
 }

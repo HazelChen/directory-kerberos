@@ -63,11 +63,11 @@ public class TestAsRepCodec {
         assertThat(sName.getNameStrings()).hasSize(2)
                 .contains("krbtgt", "DENYDC.COM");
 
-        byte[] keyData = CodecTestUtil.readBinaryFile("/server.keytab");
+        byte[] keyData = CodecTestUtil.readBinaryFile("");
         EncryptionKey rc4hmacKey = new EncryptionKey(23, keyData, 7);
 
         Keytab keytab = new Keytab();
-        keytab.load(CodecTestUtil.class.getResourceAsStream("/server.keytab"));
+        keytab.load(CodecTestUtil.getInputStream("/server.keytab"));
         EncryptionKey key = keytab.getKey(cName, EncryptionType.ARCFOUR_HMAC);
 
         EncryptionHandler.decrypt(asRep.getEncryptedEncPart(), key, usage);
