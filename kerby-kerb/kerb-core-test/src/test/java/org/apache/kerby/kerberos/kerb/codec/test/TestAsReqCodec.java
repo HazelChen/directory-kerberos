@@ -19,6 +19,9 @@
  */
 package org.apache.kerby.kerberos.kerb.codec.test;
 
+import org.apache.kerby.kerberos.kerb.KrbException;
+import org.apache.kerby.kerberos.kerb.codec.KrbCodec;
+import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
 import org.apache.kerby.kerberos.kerb.keytab.Keytab;
 import org.apache.kerby.kerberos.kerb.spec.common.*;
 import org.apache.kerby.kerberos.kerb.spec.kdc.AsReq;
@@ -26,16 +29,14 @@ import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReqBody;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaData;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataEntry;
 import org.apache.kerby.kerberos.kerb.spec.pa.PaDataType;
+import org.apache.kerby.kerberos.kerb.spec.pa.PaEncTsEnc;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.SimpleTimeZone;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -46,7 +47,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TestAsReqCodec {
 
     @Test
-    public void test() throws IOException, ParseException {
+    public void test() throws IOException, ParseException, KrbException {
         byte[] bytes = CodecTestUtil.readBinaryFile("/asreq.token");
         ByteBuffer asReqToken = ByteBuffer.wrap(bytes);
 
@@ -101,6 +102,17 @@ public class TestAsReqCodec {
         //test for encrypted data
         Keytab keytab = new Keytab();
         keytab.load(CodecTestUtil.getInputStream("/server.keytab"));
-        EncryptionKey clientKey = keytab.getKey(cName, EncryptionType.AES128_CTS);
+        PrincipalName name = new PrincipalName();
+        List<String> nameLists = new ArrayList<>();
+        nameLists.add("HTTP/server.test.domain.com@DOMAIN.COM");
+        name.setNameStrings(nameLists);
+        name.setNameType(NameType.NT_PRINCIPAL);
+
+        EncryptionKey clientKey = keytab.getKey(name, EncryptionType.ARCFOUR_HMAC);
+        EncryptedData encData = KrbCodec.decode(encTimestampEntry.getPaDataValue(), EncryptedData.class);
+        PaEncTsEnc timestamp = EncryptionUtil.unseal(encData, clientKey,
+                KeyUsage.AS_REQ_PA_ENC_TS, PaEncTsEnc.class);
+        Date timestampExpectedDate = sdf.parse("20050816094029");
+        assertThat(timestamp.getAllTime().getTime()).isEqualTo(timestampExpectedDate.getTime());
     }
 }

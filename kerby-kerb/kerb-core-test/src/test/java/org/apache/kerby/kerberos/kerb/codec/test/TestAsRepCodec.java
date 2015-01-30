@@ -19,15 +19,20 @@
  */
 package org.apache.kerby.kerberos.kerb.codec.test;
 
-import org.apache.kerby.kerberos.kerb.spec.common.KrbMessageType;
-import org.apache.kerby.kerberos.kerb.spec.common.NameType;
-import org.apache.kerby.kerberos.kerb.spec.common.PrincipalName;
+import org.apache.kerby.kerberos.kerb.KrbException;
+import org.apache.kerby.kerberos.kerb.crypto.EncryptionHandler;
+import org.apache.kerby.kerberos.kerb.keytab.Keytab;
+import org.apache.kerby.kerberos.kerb.spec.common.*;
 import org.apache.kerby.kerberos.kerb.spec.kdc.AsRep;
+import org.apache.kerby.kerberos.kerb.spec.kdc.EncAsRepPart;
+import org.apache.kerby.kerberos.kerb.spec.kdc.EncKdcRepPart;
 import org.apache.kerby.kerberos.kerb.spec.ticket.Ticket;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -38,7 +43,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TestAsRepCodec {
 
     @Test
-    public void test() throws IOException {
+    public void test() throws IOException, KrbException {
         byte[] bytes = CodecTestUtil.readBinaryFile("/asrep.token");
         ByteBuffer asRepToken = ByteBuffer.wrap(bytes);
 
@@ -61,22 +66,19 @@ public class TestAsRepCodec {
         assertThat(sName.getNameStrings()).hasSize(2)
                 .contains("krbtgt", "DENYDC.COM");
 
-//        byte[] keyData = CodecTestUtil.readBinaryFile("");
-//        EncryptionKey rc4hmacKey = new EncryptionKey(23, keyData, 7);
-//
-//        Keytab keytab = new Keytab();
-//        keytab.load(CodecTestUtil.getInputStream("/server.keytab"));
-//        EncryptionKey key = keytab.getKey(cName, EncryptionType.ARCFOUR_HMAC);
-//
-//        EncryptionHandler.decrypt(asRep.getEncryptedEncPart(), key, usage);
-//
-//
-//
-//        EncKdcRepPart encKdcRepPart = new EncAsRepPart();
-//        encKdcRepPart.setKey(rc4hmacKey);
-//
-//        EncryptedData encryptedData =
-                
+        Keytab keytab = new Keytab();
+        keytab.load(CodecTestUtil.getInputStream("/server.keytab"));
+        PrincipalName name = new PrincipalName();
+        List<String> nameLists = new ArrayList<>();
+        nameLists.add("HTTP/server.test.domain.com@DOMAIN.COM");
+        name.setNameStrings(nameLists);
+        name.setNameType(NameType.NT_PRINCIPAL);
+        EncryptionKey key = keytab.getKey(name, EncryptionType.ARCFOUR_HMAC);
+        byte[] decryptedData = EncryptionHandler.decrypt(asRep.getEncryptedEncPart(), key, KeyUsage.AS_REP_ENCPART);
+        EncKdcRepPart encKdcRepPart = new EncAsRepPart();
+        encKdcRepPart.decode(decryptedData);
+        assertThat(encKdcRepPart.getNonce()).isEqualTo(854491315);
+
         //FIXME
         //EncTicketPart encTicketPart = ticket.getEncPart();
         //assertThat(encTicketPart.getKey().getKvno()).isEqualTo(2);
