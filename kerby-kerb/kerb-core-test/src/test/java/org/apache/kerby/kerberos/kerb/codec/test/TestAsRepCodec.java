@@ -19,12 +19,10 @@
  */
 package org.apache.kerby.kerberos.kerb.codec.test;
 
-import org.apache.kerby.kerberos.kerb.crypto.EncryptionHandler;
-import org.apache.kerby.kerberos.kerb.keytab.Keytab;
-import org.apache.kerby.kerberos.kerb.spec.common.*;
+import org.apache.kerby.kerberos.kerb.spec.common.KrbMessageType;
+import org.apache.kerby.kerberos.kerb.spec.common.NameType;
+import org.apache.kerby.kerberos.kerb.spec.common.PrincipalName;
 import org.apache.kerby.kerberos.kerb.spec.kdc.AsRep;
-import org.apache.kerby.kerberos.kerb.spec.kdc.EncAsRepPart;
-import org.apache.kerby.kerberos.kerb.spec.kdc.EncKdcRepPart;
 import org.apache.kerby.kerberos.kerb.spec.ticket.Ticket;
 import org.junit.Test;
 
@@ -63,21 +61,21 @@ public class TestAsRepCodec {
         assertThat(sName.getNameStrings()).hasSize(2)
                 .contains("krbtgt", "DENYDC.COM");
 
-        byte[] keyData = CodecTestUtil.readBinaryFile("");
-        EncryptionKey rc4hmacKey = new EncryptionKey(23, keyData, 7);
-
-        Keytab keytab = new Keytab();
-        keytab.load(CodecTestUtil.getInputStream("/server.keytab"));
-        EncryptionKey key = keytab.getKey(cName, EncryptionType.ARCFOUR_HMAC);
-
-        EncryptionHandler.decrypt(asRep.getEncryptedEncPart(), key, usage);
-
-
-
-        EncKdcRepPart encKdcRepPart = new EncAsRepPart();
-        encKdcRepPart.setKey(rc4hmacKey);
-
-        EncryptedData encryptedData =
+//        byte[] keyData = CodecTestUtil.readBinaryFile("");
+//        EncryptionKey rc4hmacKey = new EncryptionKey(23, keyData, 7);
+//
+//        Keytab keytab = new Keytab();
+//        keytab.load(CodecTestUtil.getInputStream("/server.keytab"));
+//        EncryptionKey key = keytab.getKey(cName, EncryptionType.ARCFOUR_HMAC);
+//
+//        EncryptionHandler.decrypt(asRep.getEncryptedEncPart(), key, usage);
+//
+//
+//
+//        EncKdcRepPart encKdcRepPart = new EncAsRepPart();
+//        encKdcRepPart.setKey(rc4hmacKey);
+//
+//        EncryptedData encryptedData =
                 
         //FIXME
         //EncTicketPart encTicketPart = ticket.getEncPart();

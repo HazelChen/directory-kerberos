@@ -19,6 +19,7 @@
  */
 package org.apache.kerby.kerberos.kerb.codec.test;
 
+import org.apache.kerby.kerberos.kerb.keytab.Keytab;
 import org.apache.kerby.kerberos.kerb.spec.common.*;
 import org.apache.kerby.kerberos.kerb.spec.kdc.AsReq;
 import org.apache.kerby.kerberos.kerb.spec.kdc.KdcReqBody;
@@ -96,5 +97,10 @@ public class TestAsReqCodec {
         List<HostAddress> hostAddress = body.getAddresses().getElements();
         assertThat(hostAddress).hasSize(1);
         assertThat(hostAddress.get(0).getAddrType()).isEqualTo(HostAddrType.ADDRTYPE_NETBIOS);
+
+        //test for encrypted data
+        Keytab keytab = new Keytab();
+        keytab.load(CodecTestUtil.getInputStream("/server.keytab"));
+        EncryptionKey clientKey = keytab.getKey(cName, EncryptionType.AES128_CTS);
     }
 }
