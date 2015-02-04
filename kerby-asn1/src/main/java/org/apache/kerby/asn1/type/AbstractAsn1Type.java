@@ -28,35 +28,75 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+/**
+ * The abstract ASN1 type for all the ASN1 types. It provides basic
+ * encoding and decoding utilities.
+ *
+ * @param <T> the type of the value encoded/decoded or wrapped by this
+ */
 public abstract class AbstractAsn1Type<T> implements Asn1Type {
     private TagClass tagClass = TagClass.UNKNOWN;
     private int tagNo = -1;
     private int tagFlags = -1;
-    protected EncodingOption encodingOption = EncodingOption.UNKNOWN;
+    private EncodingOption encodingOption = EncodingOption.BER;
     private int encodingLen = -1;
+    // The wrapped real value.
     private T value;
 
+    /**
+     * Default constructor, generally for decoding as a value container
+     * @param tagClass
+     * @param tagNo
+     */
     public AbstractAsn1Type(TagClass tagClass, int tagNo) {
         this(tagClass, tagNo, null);
     }
 
+    /**
+     * Default constructor, generally for decoding as a value container
+     * @param tagFlags
+     * @param tagNo
+     */
     public AbstractAsn1Type(int tagFlags, int tagNo) {
         this(tagFlags, tagNo, null);
     }
 
+    /**
+     * Constructor with a value, generally for encoding of the value
+     * @param tagFlags
+     * @param tagNo
+     * @param value
+     */
     public AbstractAsn1Type(int tagFlags, int tagNo, T value) {
         this(TagClass.fromTagFlags(tagFlags), tagNo, value);
         setTagFlags(tagFlags);
     }
 
+    /**
+     * Constructor with a value, generally for encoding of the value
+     * @param tagNo
+     * @param value
+     */
     public AbstractAsn1Type(TagClass tagClass, int tagNo, T value) {
         this.tagClass = tagClass;
         this.tagNo = tagNo;
         this.value = value;
     }
 
+    /**
+     * Set encoding option
+     * @param encodingOption
+     */
     public void setEncodingOption(EncodingOption encodingOption) {
         this.encodingOption = encodingOption;
+    }
+
+    /**
+     * Get encoding option
+     * @return encoding option
+     */
+    public EncodingOption getEncodingOption() {
+        return this.encodingOption;
     }
 
     public T getValue() {
