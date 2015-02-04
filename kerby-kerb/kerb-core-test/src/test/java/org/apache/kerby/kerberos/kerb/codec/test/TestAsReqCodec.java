@@ -44,7 +44,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Test AsReq message using a real 'correct' network packet captured from MS-AD to detective programming errors
  * and compatibility issues particularly regarding Kerberos crypto.
  */
-public class TestAsReqCodec {
+public class
+        TestAsReqCodec {
 
     @Test
     public void test() throws IOException, ParseException, KrbException {
