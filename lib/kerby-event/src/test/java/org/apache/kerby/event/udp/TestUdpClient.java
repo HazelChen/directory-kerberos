@@ -71,13 +71,14 @@ public class TestUdpClient extends TestUdpBase {
     }
 
     private void doRunServer() throws IOException {
-        DatagramChannel serverSocketChannel;
         Selector selector = Selector.open();
-        serverSocketChannel = DatagramChannel.open();
+        DatagramChannel serverSocketChannel = DatagramChannel.open();
         serverSocketChannel.configureBlocking(false);
         DatagramSocket serverSocket = serverSocketChannel.socket();
         serverSocket.bind(new InetSocketAddress(serverPort));
         serverSocketChannel.register(selector, SelectionKey.OP_READ);
+        
+        serverPort = serverSocket.getLocalPort();
 
         while (true) {
             if (selector.selectNow() > 0) {
