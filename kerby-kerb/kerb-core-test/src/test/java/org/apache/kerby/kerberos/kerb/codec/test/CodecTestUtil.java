@@ -27,8 +27,12 @@ import org.apache.kerby.kerberos.kerb.spec.common.PrincipalName;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.SimpleTimeZone;
 
 public class CodecTestUtil {
     private static Keytab defaultKeytab;
@@ -62,6 +66,13 @@ public class CodecTestUtil {
         is.read(bytes);
         is.close();
         return bytes;
+    }
+
+    /*package*/ static long parseDateByDefaultFormat(String dateString) throws ParseException {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+        sdf.setTimeZone(new SimpleTimeZone(0, "Z"));
+        Date date = sdf.parse(dateString);
+        return date.getTime();
     }
 
 }

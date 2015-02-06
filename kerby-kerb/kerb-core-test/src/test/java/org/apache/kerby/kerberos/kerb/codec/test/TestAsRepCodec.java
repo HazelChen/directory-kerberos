@@ -31,7 +31,9 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,7 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TestAsRepCodec {
 
     @Test
-    public void test() throws IOException, KrbException {
+    public void test() throws IOException, KrbException, ParseException {
         byte[] bytes = CodecTestUtil.readBinaryFile("/asrep.token");
         ByteBuffer asRepToken = ByteBuffer.wrap(bytes);
 
@@ -66,19 +68,35 @@ public class TestAsRepCodec {
         assertThat(sName.getNameStrings()).hasSize(2)
                 .contains("krbtgt", "DENYDC.COM");
 
+        //test for encrypted data
         EncryptionKey key = CodecTestUtil.getKeyFromDefaultKeytab(EncryptionType.ARCFOUR_HMAC);
         byte[] decryptedData = EncryptionHandler.decrypt(asRep.getEncryptedEncPart(), key, KeyUsage.AS_REP_ENCPART);
         EncKdcRepPart encKdcRepPart = new EncAsRepPart();
         encKdcRepPart.decode(decryptedData);
+
+        List<LastReqEntry> lastReqEntries = encKdcRepPart.getLastReq().getElements();
+        assertThat(lastReqEntries).hasSize(1);
+        LastReqEntry entry = lastReqEntries.get(0);
+        assertThat(entry.getLrType()).isEqualTo(LastReqType.NONE);
+        assertThat(entry.getLrValue().getTime())
+                .isEqualTo(CodecTestUtil.parseDateByDefaultFormat("20050816094134"));
+
         assertThat(encKdcRepPart.getNonce()).isEqualTo(854491315);
+        assertThat(encKdcRepPart.getKeyExpiration().getTime())
+                .isEqualTo(CodecTestUtil.parseDateByDefaultFormat("20370914024805"));
+        byte[] ticketFlags = new byte[]{0,1,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+        assertThat(encKdcRepPart.getFlags().getValue()).isEqualTo(ticketFlags);
+        assertThat(encKdcRepPart.getAuthTime().getTime())
+                .isEqualTo(CodecTestUtil.parseDateByDefaultFormat("20050816094134"));
+        assertThat(encKdcRepPart.getStartTime().getTime())
+                .isEqualTo(CodecTestUtil.parseDateByDefaultFormat("20050816094134"));
+        assertThat(encKdcRepPart.getEndTime().getTime())
+                .isEqualTo(CodecTestUtil.parseDateByDefaultFormat("20050817050000"));
+        assertThat(encKdcRepPart.getSrealm()).isEqualTo("DENYDC.COM");
 
-        //FIXME
-        //EncTicketPart encTicketPart = ticket.getEncPart();
-        //assertThat(encTicketPart.getKey().getKvno()).isEqualTo(2);
-        //assertThat(encTicketPart.getKey().getKeyType().getValue()).isEqualTo(0x0017);
-
-        //EncKdcRepPart encKdcRepPart = asRep.getEncPart();
-        //assertThat(encKdcRepPart.getKey().getKeyType().getValue()).isEqualTo(0x0017);
-        //assertThat(encKdcRepPart.getKey().getKvno()).isEqualTo(7);
+        PrincipalName encSName = encKdcRepPart.getSname();
+        assertThat(encSName.getName()).isEqualTo("krbtgt/DENYDC.COM");
+        assertThat(encSName.getNameType()).isEqualTo(NameType.NT_SRV_INST);
+        assertThat(encSName.getNameStrings()).hasSize(2).contains("krbtgt").contains("DENYDC.COM");
     }
 }

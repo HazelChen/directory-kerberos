@@ -61,7 +61,16 @@ public class
         PaData paData = asReq.getPaData();
         PaDataEntry encTimestampEntry = paData.findEntry(PaDataType.ENC_TIMESTAMP);
         assertThat(encTimestampEntry.getPaDataType()).isEqualTo(PaDataType.ENC_TIMESTAMP);
-        assertThat(encTimestampEntry.getPaDataValue()).isEqualTo(Arrays.copyOfRange(bytes, 33, 96));
+        //assertThat(encTimestampEntry.getPaDataValue()).isEqualTo(Arrays.copyOfRange(bytes, 33, 96));
+        //test for encrypted data
+        EncryptionKey timestampEncKey = CodecTestUtil.getKeyFromDefaultKeytab(EncryptionType.ARCFOUR_HMAC);
+        EncryptedData timestampEncData = KrbCodec.decode(encTimestampEntry.getPaDataValue(), EncryptedData.class);
+        PaEncTsEnc timestamp = EncryptionUtil.unseal(timestampEncData, timestampEncKey,
+                KeyUsage.AS_REQ_PA_ENC_TS, PaEncTsEnc.class);
+        assertThat(timestamp.getAllTime().getTime())
+                .isEqualTo(CodecTestUtil.parseDateByDefaultFormat("20050816094029"));
+        assertThat(timestamp.getPaUsec()).isEqualTo(536026);
+
         PaDataEntry pacRequestEntry = paData.findEntry(PaDataType.PAC_REQUEST);
         assertThat(pacRequestEntry.getPaDataType()).isEqualTo(PaDataType.PAC_REQUEST);
         assertThat(pacRequestEntry.getPaDataValue()).isEqualTo(Arrays.copyOfRange(bytes, 108, 115));
@@ -78,11 +87,9 @@ public class
         assertThat(sName.getNameStrings()).hasSize(2)
                 .contains("krbtgt", "DENYDC");
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
-        sdf.setTimeZone(new SimpleTimeZone(0, "Z"));
-        Date date = sdf.parse("20370913024805");
-        assertThat(body.getTill().getTime()).isEqualTo(date.getTime());
-        assertThat(body.getRtime().getTime()).isEqualTo(date.getTime());
+        long dataTime = CodecTestUtil.parseDateByDefaultFormat("20370913024805");
+        assertThat(body.getTill().getTime()).isEqualTo(dataTime);
+        assertThat(body.getRtime().getTime()).isEqualTo(dataTime);
 
         assertThat(body.getNonce()).isEqualTo(197451134);
 
@@ -99,14 +106,5 @@ public class
         List<HostAddress> hostAddress = body.getAddresses().getElements();
         assertThat(hostAddress).hasSize(1);
         assertThat(hostAddress.get(0).getAddrType()).isEqualTo(HostAddrType.ADDRTYPE_NETBIOS);
-
-        //test for encrypted data
-        EncryptionKey timestampEncKey = CodecTestUtil.getKeyFromDefaultKeytab(EncryptionType.ARCFOUR_HMAC);
-        EncryptedData timestampEncData = KrbCodec.decode(encTimestampEntry.getPaDataValue(), EncryptedData.class);
-        PaEncTsEnc timestamp = EncryptionUtil.unseal(timestampEncData, timestampEncKey,
-                KeyUsage.AS_REQ_PA_ENC_TS, PaEncTsEnc.class);
-        Date timestampExpectedDate = sdf.parse("20050816094029");
-        assertThat(timestamp.getAllTime().getTime()).isEqualTo(timestampExpectedDate.getTime());
-        assertThat(timestamp.getPaUsec()).isEqualTo(536026);
     }
 }
