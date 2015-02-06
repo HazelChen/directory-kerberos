@@ -19,10 +19,43 @@
  */
 package org.apache.kerby.kerberos.kerb.codec.test;
 
+import org.apache.kerby.kerberos.kerb.keytab.Keytab;
+import org.apache.kerby.kerberos.kerb.spec.common.EncryptionKey;
+import org.apache.kerby.kerberos.kerb.spec.common.EncryptionType;
+import org.apache.kerby.kerberos.kerb.spec.common.NameType;
+import org.apache.kerby.kerberos.kerb.spec.common.PrincipalName;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 
 public class CodecTestUtil {
+    private static Keytab defaultKeytab;
+    private static PrincipalName defaultPrincipalName;
+
+    /**
+     * The method is used by
+     * TestAsReqCodec, TestAsRepCodec, TestTgsReqCodec, TestTgsRepCodec.
+     * They all have a same keytab which is read from file "/server.keytab".
+     */
+    /*package*/ static EncryptionKey getKeyFromDefaultKeytab(EncryptionType encryptionType) throws IOException {
+        if (defaultKeytab == null) {
+            defaultKeytab = new Keytab();
+            InputStream inputStream = CodecTestUtil.class.getResourceAsStream("/server.keytab");
+            defaultKeytab.load(inputStream);
+            inputStream.close();
+        }
+
+        if (defaultPrincipalName == null) {
+            defaultPrincipalName = new PrincipalName();
+            defaultPrincipalName.setNameStrings(Arrays.asList("HTTP/server.test.domain.com@DOMAIN.COM"));
+            defaultPrincipalName.setNameType(NameType.NT_PRINCIPAL);
+        }
+
+        return defaultKeytab.getKey(defaultPrincipalName, encryptionType);
+    }
+
     /*package*/ static byte[] readBinaryFile(String path) throws IOException {
         InputStream is = CodecTestUtil.class.getResourceAsStream(path);
         byte[] bytes = new byte[is.available()];
@@ -30,10 +63,5 @@ public class CodecTestUtil {
         is.close();
         return bytes;
     }
-
-    /*package*/ static InputStream getInputStream(String path) throws IOException {
-        return CodecTestUtil.class.getResourceAsStream(path);
-    }
-
 
 }

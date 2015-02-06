@@ -101,19 +101,12 @@ public class
         assertThat(hostAddress.get(0).getAddrType()).isEqualTo(HostAddrType.ADDRTYPE_NETBIOS);
 
         //test for encrypted data
-        Keytab keytab = new Keytab();
-        keytab.load(CodecTestUtil.getInputStream("/server.keytab"));
-        PrincipalName name = new PrincipalName();
-        List<String> nameLists = new ArrayList<>();
-        nameLists.add("HTTP/server.test.domain.com@DOMAIN.COM");
-        name.setNameStrings(nameLists);
-        name.setNameType(NameType.NT_PRINCIPAL);
-
-        EncryptionKey clientKey = keytab.getKey(name, EncryptionType.ARCFOUR_HMAC);
-        EncryptedData encData = KrbCodec.decode(encTimestampEntry.getPaDataValue(), EncryptedData.class);
-        PaEncTsEnc timestamp = EncryptionUtil.unseal(encData, clientKey,
+        EncryptionKey timestampEncKey = CodecTestUtil.getKeyFromDefaultKeytab(EncryptionType.ARCFOUR_HMAC);
+        EncryptedData timestampEncData = KrbCodec.decode(encTimestampEntry.getPaDataValue(), EncryptedData.class);
+        PaEncTsEnc timestamp = EncryptionUtil.unseal(timestampEncData, timestampEncKey,
                 KeyUsage.AS_REQ_PA_ENC_TS, PaEncTsEnc.class);
         Date timestampExpectedDate = sdf.parse("20050816094029");
         assertThat(timestamp.getAllTime().getTime()).isEqualTo(timestampExpectedDate.getTime());
+        assertThat(timestamp.getPaUsec()).isEqualTo(536026);
     }
 }

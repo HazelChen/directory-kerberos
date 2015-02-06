@@ -66,14 +66,7 @@ public class TestAsRepCodec {
         assertThat(sName.getNameStrings()).hasSize(2)
                 .contains("krbtgt", "DENYDC.COM");
 
-        Keytab keytab = new Keytab();
-        keytab.load(CodecTestUtil.getInputStream("/server.keytab"));
-        PrincipalName name = new PrincipalName();
-        List<String> nameLists = new ArrayList<>();
-        nameLists.add("HTTP/server.test.domain.com@DOMAIN.COM");
-        name.setNameStrings(nameLists);
-        name.setNameType(NameType.NT_PRINCIPAL);
-        EncryptionKey key = keytab.getKey(name, EncryptionType.ARCFOUR_HMAC);
+        EncryptionKey key = CodecTestUtil.getKeyFromDefaultKeytab(EncryptionType.ARCFOUR_HMAC);
         byte[] decryptedData = EncryptionHandler.decrypt(asRep.getEncryptedEncPart(), key, KeyUsage.AS_REP_ENCPART);
         EncKdcRepPart encKdcRepPart = new EncAsRepPart();
         encKdcRepPart.decode(decryptedData);
