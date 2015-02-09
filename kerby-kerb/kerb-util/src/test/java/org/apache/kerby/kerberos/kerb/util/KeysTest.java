@@ -56,8 +56,7 @@ public class KeysTest {
     @Before
     public void setUp() throws IOException {
         InputStream kis = KeysTest.class.getResourceAsStream("/test.keytab");
-        keytab = new Keytab();
-        keytab.load(kis);
+        keytab = Keytab.loadKeytab(kis);
     }
 
     @Test
@@ -65,12 +64,11 @@ public class KeysTest {
         List<PrincipalName> principals = keytab.getPrincipals();
         PrincipalName principal = principals.get(0);
         List<KeytabEntry> entries = keytab.getKeytabEntries(principal);
-        EncryptionKey genKey;
-        EncryptionType keyType;
+
         for (KeytabEntry ke : entries) {
-            keyType = ke.getKey().getKeyType();
+            EncryptionType keyType = ke.getKey().getKeyType();
             if (EncryptionHandler.isImplemented(keyType)) {
-                genKey = EncryptionHandler.string2Key(principal.getName(),
+                EncryptionKey genKey = EncryptionHandler.string2Key(principal.getName(),
                         TEST_PASSWORD, keyType);
                 if(! ke.getKey().equals(genKey)) {
                     fail("str2key failed for key type: " + keyType.getName());

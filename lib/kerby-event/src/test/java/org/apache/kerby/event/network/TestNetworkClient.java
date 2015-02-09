@@ -51,6 +51,8 @@ public class TestNetworkClient extends TestNetworkBase {
 
     @Before
     public void setUp() throws IOException {
+        preparePorts();
+
         setUpServer();
         setUpClient();
     }
@@ -80,9 +82,8 @@ public class TestNetworkClient extends TestNetworkBase {
     }
 
     private void doRunTcpServer() throws IOException {
-        ServerSocketChannel serverSocketChannel;
         Selector selector = Selector.open();
-        serverSocketChannel = ServerSocketChannel .open();
+        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
         serverSocketChannel.configureBlocking(false);
         ServerSocket serverSocket = serverSocketChannel.socket();
         serverSocket.bind(new InetSocketAddress(tcpPort));
@@ -125,9 +126,8 @@ public class TestNetworkClient extends TestNetworkBase {
     }
 
     private void doRunUdpServer() throws IOException {
-        DatagramChannel serverSocketChannel;
         Selector selector = Selector.open();
-        serverSocketChannel = DatagramChannel.open();
+        DatagramChannel serverSocketChannel = DatagramChannel.open();
         serverSocketChannel.configureBlocking(false);
         DatagramSocket serverSocket = serverSocketChannel.socket();
         serverSocket.bind(new InetSocketAddress(udpPort));

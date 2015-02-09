@@ -31,6 +31,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
@@ -44,6 +45,8 @@ public class TestNetworkServer extends TestNetworkBase {
 
     @Before
     public void setUp() throws IOException {
+        preparePorts();
+
         setUpServer();
     }
 
@@ -65,6 +68,7 @@ public class TestNetworkServer extends TestNetworkBase {
         eventHub.register(network);
 
         eventHub.start();
+
         network.tcpListen(serverHost, tcpPort);
         network.udpListen(serverHost, udpPort);
     }
