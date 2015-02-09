@@ -20,7 +20,7 @@
 package org.apache.kerby.kerberos.kerb.codec.test;
 
 import org.apache.kerby.kerberos.kerb.KrbException;
-import org.apache.kerby.kerberos.kerb.crypto.EncryptionHandler;
+import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
 import org.apache.kerby.kerberos.kerb.keytab.Keytab;
 import org.apache.kerby.kerberos.kerb.spec.common.*;
 import org.apache.kerby.kerberos.kerb.spec.kdc.AsRep;
@@ -32,8 +32,6 @@ import org.junit.Test;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,11 +40,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Test AsRep message using a real 'correct' network packet captured from MS-AD to detective programming errors
  * and compatibility issues particularly regarding Kerberos crypto.
  */
-public class TestAsRepCodec {
+public class TestAsRepCodec extends TestMessageCodec {
 
     @Test
     public void test() throws IOException, KrbException, ParseException {
-        byte[] bytes = CodecTestUtil.readBinaryFile("/asrep.token");
+        byte[] bytes = readBinaryFile("/asrep.token");
         ByteBuffer asRepToken = ByteBuffer.wrap(bytes);
 
         AsRep asRep = new AsRep();
@@ -69,29 +67,27 @@ public class TestAsRepCodec {
                 .contains("krbtgt", "DENYDC.COM");
 
         //test for encrypted data
-        EncryptionKey key = CodecTestUtil.getKeyFromDefaultKeytab(EncryptionType.ARCFOUR_HMAC);
-        byte[] decryptedData = EncryptionHandler.decrypt(asRep.getEncryptedEncPart(), key, KeyUsage.AS_REP_ENCPART);
-        EncKdcRepPart encKdcRepPart = new EncAsRepPart();
-        encKdcRepPart.decode(decryptedData);
+        Keytab keytab = getDefaultKeytab();
+        cName.setRealm(asRep.getCrealm());
+        EncryptionKey key = keytab.getKey(cName, EncryptionType.ARCFOUR_HMAC);
+        EncKdcRepPart encKdcRepPart = EncryptionUtil.unseal(asRep.getEncryptedEncPart(), key,
+                KeyUsage.AS_REP_ENCPART, EncAsRepPart.class);
 
         List<LastReqEntry> lastReqEntries = encKdcRepPart.getLastReq().getElements();
         assertThat(lastReqEntries).hasSize(1);
         LastReqEntry entry = lastReqEntries.get(0);
         assertThat(entry.getLrType()).isEqualTo(LastReqType.NONE);
-        assertThat(entry.getLrValue().getTime())
-                .isEqualTo(CodecTestUtil.parseDateByDefaultFormat("20050816094134"));
+        assertThat(entry.getLrValue().getTime()).isEqualTo(parseDateByDefaultFormat("20050816094134"));
 
         assertThat(encKdcRepPart.getNonce()).isEqualTo(854491315);
         assertThat(encKdcRepPart.getKeyExpiration().getTime())
-                .isEqualTo(CodecTestUtil.parseDateByDefaultFormat("20370914024805"));
-        byte[] ticketFlags = new byte[]{0,1,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+                .isEqualTo(parseDateByDefaultFormat("20370914024805"));
+        byte[] ticketFlags = new byte[]{64, -32, 0, 0};
         assertThat(encKdcRepPart.getFlags().getValue()).isEqualTo(ticketFlags);
-        assertThat(encKdcRepPart.getAuthTime().getTime())
-                .isEqualTo(CodecTestUtil.parseDateByDefaultFormat("20050816094134"));
-        assertThat(encKdcRepPart.getStartTime().getTime())
-                .isEqualTo(CodecTestUtil.parseDateByDefaultFormat("20050816094134"));
-        assertThat(encKdcRepPart.getEndTime().getTime())
-                .isEqualTo(CodecTestUtil.parseDateByDefaultFormat("20050817050000"));
+        assertThat(encKdcRepPart.getAuthTime().getTime()).isEqualTo(parseDateByDefaultFormat("20050816094134"));
+        assertThat(encKdcRepPart.getStartTime().getTime()).isEqualTo(parseDateByDefaultFormat("20050816094134"));
+        assertThat(encKdcRepPart.getEndTime().getTime()).isEqualTo(parseDateByDefaultFormat("20050816194134"));
+        assertThat(encKdcRepPart.getRenewTill().getTime()).isEqualTo(parseDateByDefaultFormat("20050817050000"));
         assertThat(encKdcRepPart.getSrealm()).isEqualTo("DENYDC.COM");
 
         PrincipalName encSName = encKdcRepPart.getSname();

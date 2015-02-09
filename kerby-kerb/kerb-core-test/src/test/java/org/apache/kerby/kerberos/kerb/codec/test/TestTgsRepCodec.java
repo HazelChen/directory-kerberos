@@ -22,6 +22,7 @@ package org.apache.kerby.kerberos.kerb.codec.test;
 import org.apache.kerby.kerberos.kerb.KrbException;
 import org.apache.kerby.kerberos.kerb.common.EncryptionUtil;
 import org.apache.kerby.kerberos.kerb.crypto.EncryptionHandler;
+import org.apache.kerby.kerberos.kerb.keytab.Keytab;
 import org.apache.kerby.kerberos.kerb.spec.common.*;
 import org.apache.kerby.kerberos.kerb.spec.kdc.EncAsRepPart;
 import org.apache.kerby.kerberos.kerb.spec.kdc.EncKdcRepPart;
@@ -32,6 +33,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,11 +41,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Test TgsRep message using a real 'correct' network packet captured from MS-AD to detective programming errors
  * and compatibility issues particularly regarding Kerberos crypto.
  */
-public class TestTgsRepCodec {
+public class TestTgsRepCodec extends TestMessageCodec{
 
     @Test
     public void test() throws IOException, KrbException, ParseException {
-        byte[] bytes = CodecTestUtil.readBinaryFile("/tgsrep.token");
+        byte[] bytes = readBinaryFile("/tgsrep.token");
         TgsRep tgsRep = new TgsRep();
         tgsRep.decode(bytes);
 
@@ -64,7 +66,9 @@ public class TestTgsRepCodec {
                 .contains("host", "xp1.denydc.com");
 
         //test for encrypted data
-        EncryptionKey key = CodecTestUtil.getKeyFromDefaultKeytab(EncryptionType.DES_CBC_MD5);
+        Keytab keytab = getDefaultKeytab();
+        cName.setRealm(tgsRep.getCrealm());
+        EncryptionKey key = keytab.getKey(cName, EncryptionType.DES_CBC_MD5);
         EncKdcRepPart encKdcRepPart = EncryptionUtil.unseal(tgsRep.getEncryptedEncPart(), key,
                 KeyUsage.TGS_REP_ENCPART_SESSKEY, EncTgsRepPart.class);
 
@@ -72,22 +76,17 @@ public class TestTgsRepCodec {
         assertThat(lastReq.getElements()).hasSize(1);
         LastReqEntry lastReqEntry = lastReq.getElements().iterator().next();
         assertThat(lastReqEntry.getLrType()).isEqualTo(LastReqType.NONE);
-        assertThat(lastReqEntry.getLrValue().getTime())
-                .isEqualTo(CodecTestUtil.parseDateByDefaultFormat("20050816094029"));
+        assertThat(lastReqEntry.getLrValue().getTime()).isEqualTo(parseDateByDefaultFormat("20050816094029"));
 
         assertThat(encKdcRepPart.getNonce()).isEqualTo(197296424);
 
-        byte[] ticketFlags = new byte[]{0,1,0,0,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+        byte[] ticketFlags = new byte[]{64, -96, 0, 0};
         assertThat(encKdcRepPart.getFlags().getValue()).isEqualTo(ticketFlags);
 
-        assertThat(encKdcRepPart.getAuthTime().getTime())
-                .isEqualTo(CodecTestUtil.parseDateByDefaultFormat("20050816094029"));
-        assertThat(encKdcRepPart.getStartTime().getTime())
-                .isEqualTo(CodecTestUtil.parseDateByDefaultFormat("20050816094029"));
-        assertThat(encKdcRepPart.getEndTime().getTime())
-                .isEqualTo(CodecTestUtil.parseDateByDefaultFormat("20050816194029"));
-        assertThat(encKdcRepPart.getRenewTill().getTime())
-                .isEqualTo(CodecTestUtil.parseDateByDefaultFormat("20050823094029"));
+        assertThat(encKdcRepPart.getAuthTime().getTime()).isEqualTo(parseDateByDefaultFormat("20050816094029"));
+        assertThat(encKdcRepPart.getStartTime().getTime()).isEqualTo(parseDateByDefaultFormat("20050816094029"));
+        assertThat(encKdcRepPart.getEndTime().getTime()).isEqualTo(parseDateByDefaultFormat("20050816194029"));
+        assertThat(encKdcRepPart.getRenewTill().getTime()).isEqualTo(parseDateByDefaultFormat("20050823094029"));
 
         assertThat(encKdcRepPart.getSrealm()).isEqualTo("DENYDC.COM");
 
