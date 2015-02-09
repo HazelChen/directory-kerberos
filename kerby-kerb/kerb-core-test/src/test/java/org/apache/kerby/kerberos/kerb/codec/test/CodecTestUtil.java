@@ -43,7 +43,8 @@ public class CodecTestUtil {
      * TestAsReqCodec, TestAsRepCodec, TestTgsReqCodec, TestTgsRepCodec.
      * They all have a same keytab which is read from file "/server.keytab".
      */
-    /*package*/ static EncryptionKey getKeyFromDefaultKeytab(EncryptionType encryptionType) throws IOException {
+    /*package*/
+    static EncryptionKey getKeyFromDefaultKeytab(EncryptionType encryptionType) throws IOException {
         if (defaultKeytab == null) {
             defaultKeytab = new Keytab();
             InputStream inputStream = CodecTestUtil.class.getResourceAsStream("/server.keytab");
@@ -60,7 +61,8 @@ public class CodecTestUtil {
         return defaultKeytab.getKey(defaultPrincipalName, encryptionType);
     }
 
-    /*package*/ static byte[] readBinaryFile(String path) throws IOException {
+    /*package*/
+    static byte[] readBinaryFile(String path) throws IOException {
         InputStream is = CodecTestUtil.class.getResourceAsStream(path);
         byte[] bytes = new byte[is.available()];
         is.read(bytes);
@@ -68,7 +70,8 @@ public class CodecTestUtil {
         return bytes;
     }
 
-    /*package*/ static long parseDateByDefaultFormat(String dateString) throws ParseException {
+    /*package*/
+    static long parseDateByDefaultFormat(String dateString) throws ParseException {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
         sdf.setTimeZone(new SimpleTimeZone(0, "Z"));
         Date date = sdf.parse(dateString);
