@@ -28,12 +28,12 @@ import java.io.File;
 
 public class KdcServer {
     private String kdcHost;
-    private short kdcTcpPort;
-    private short kdcUdpPort;
+    private int kdcTcpPort;
+    private int kdcUdpPort;
     private String kdcRealm;
 
     private boolean started;
-    private String serviceName = "HaoxKdc";
+    private String serviceName = "KerbyKdc";
 
     private KdcHandler kdcHandler;
     private EventHub eventHub;
@@ -112,14 +112,14 @@ public class KdcServer {
         return kdcConfig.getKdcHost();
     }
 
-    private short getKdcTcpPort() {
+    private int getKdcTcpPort() {
         if (kdcTcpPort > 0) {
             return kdcTcpPort;
         }
         return kdcConfig.getKdcTcpPort();
     }
 
-    private short getKdcUdpPort() {
+    private int getKdcUdpPort() {
         if (kdcUdpPort > 0) {
             return kdcUdpPort;
         }
@@ -130,11 +130,11 @@ public class KdcServer {
         this.kdcHost = kdcHost;
     }
 
-    public void setKdcTcpPort(short kdcTcpPort) {
+    public void setKdcTcpPort(int kdcTcpPort) {
         this.kdcTcpPort = kdcTcpPort;
     }
 
-    public void setKdcUdpPort(short kdcUdpPort) {
+    public void setKdcUdpPort(int kdcUdpPort) {
         this.kdcUdpPort = kdcUdpPort;
     }
 
