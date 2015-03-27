@@ -42,6 +42,7 @@
     <module>kerby-kerb</module>
     <module>kerby-kdc</module>
     <module>kerby-tool</module>
+    <module>kerby-web-tool</module>
     <module>kerby-kdc-test</module>
     <module>kerby-backend</module>
     <module>kerby-dist</module>
